@@ -3,7 +3,6 @@
 2. Fill in the variables from .env.sample in .env.
 3. Install requirements.
 4. Runserver! 
----
 
 ```
   touch /path/to/game_gbfs.env
