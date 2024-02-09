@@ -1,0 +1,158 @@
+
+<!-- home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiple Choice Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        #play-button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Welcome to the GBFS Quiz Game</h1>
+    <button id="play-button" onclick="startTimer()">Play</button>
+    <div id="timer">60</div>
+
+    <div id = "question"><h1>Question</h1></div>
+
+    <div>
+     <div class="choice" id = "optionsclass">
+        </div>
+    </div>
+
+
+<div id="questions-container"></div>
+
+    <script>
+
+        let timerValue = 60;
+        var questions;
+        index = 0
+
+        function startTimer() {
+            document.getElementById('play-button').style.display = 'none';
+            const timerElement = document.getElementById('timer');
+<!--            GetQuestions().then((data) => {console.log(data)});-->
+            const request = new XMLHttpRequest();
+            request.open("GET", 'http://127.0.0.1:8000/create_game', false); // `false` makes the request synchronous
+            request.send(null);
+
+            if (request.status === 200) {
+              questions = JSON.parse(request.responseText);
+            }else{
+               questions = "teri maa ka bhosda";
+            }
+            console.log(questions);
+            document.getElementById('api-response').style.display = 'block';
+            document.getElementById('question').innerHTML += questions.response[index].question;
+
+            select = document.getElementById('optionsclass');
+            for (var i = 0; i<=3; i++){
+                    let optiondiv = document.createElement("div");
+                    optiondiv.className = "aClassName";
+                    let input = document.createElement("input");
+                    input.type = "radio";
+                    input.value = i;
+                    input.id = 'opt' + i.toString();
+                    var label = document.createElement("label");
+                    label.id = 'lb' + i.toString();
+                    label.htmlFor = 'opt' + i.toString();
+                    label.innerHTML = questions.response[index].options[i]
+                    console.log(input.id)
+                    optiondiv.appendChild(input);
+                    optiondiv.appendChild(label);
+                    select.appendChild(optiondiv);
+
+            }
+
+            const timerInterval = setInterval(function () {
+                if (timerValue > 0) {
+                    timerElement.innerText = timerValue--;
+                } else {
+                    timerElement.innerText = 'Time\'s up!';
+                    clearInterval(timerInterval);  // Stop the timer when it reaches 0
+                }
+            }, 100);
+
+        }
+
+
+
+      async function GetQuestions() {
+
+        const apiEndpoint = 'http://127.0.0.1:8000/search';
+
+          const response = await fetch(apiEndpoint);
+<!--            .then(response => {-->
+<!--              if (!response.ok) {-->
+<!--                throw new Error(`HTTP error! Status: ${response.status}`);-->
+<!--              }-->
+<!--              return response.json();-->
+<!--            })-->
+<!--            .then(data => {-->
+<!--&lt;!&ndash;              const jsonResponse = JSON.stringify(data, null, 2);&ndash;&gt;-->
+<!--              questions = data;-->
+<!--            })-->
+<!--            .catch(error => {-->
+<!--              console.error('Error fetching data:', error);-->
+<!--              document.getElementById('api-response').textContent = 'Error fetching data. Check console for details.';-->
+<!--            );-->
+            const data = await response.json();
+            return data;
+        }
+
+      function generateQuestionHTML(questionData) {
+      const questionDiv = document.createElement('div');
+      questionDiv.classList.add('question', 'hidden');
+      questionDiv.id = questionData.id;
+
+      const questionHeading = document.createElement('h1');
+      questionHeading.textContent = questionData.question;
+
+      const form = document.createElement('form');
+      form.action = "#";
+      form.method = "post";
+      form.onsubmit = function () {
+        return false; // Prevent form submission
+      };
+
+      questionData.options.forEach((option, index) => {
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = "radio";
+        input.name = questionData.id;
+        input.value = option;
+
+        input.addEventListener('change', function () {
+          showNextQuestion(questionData.nextQuestionId);
+        });
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(` ${option}`));
+        form.appendChild(label);
+        form.appendChild(document.createElement('br'));
+      });
+
+      questionDiv.appendChild(questionHeading);
+      questionDiv.appendChild(form);
+
+      return questionDiv;
+    }
+
+    </script>
+<a href="{% url 'index' %}">Home</a>.
+
+</body>
+</html>
